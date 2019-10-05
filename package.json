@@ -1,0 +1,39 @@
+{
+  "name": "proxy-balancer",
+  "version": "1.0.0",
+  "description": "Proxy load balancer",
+  "main": "./lib/balancer.js",
+  "engines": {
+    "node": ">=7.8.0"
+  },
+  "scripts": {
+    "test": "mocha --timeout 10000 --exit"
+  },
+  "keywords": [
+    "proxy",
+    "proxies",
+    "balancer",
+    "rotater",
+    "rotating"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zjael/proxy-balancer.git"
+  },
+  "author": "Jakob Sjælland",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/zjael/proxy-balancer/issues"
+  },
+  "homepage": "https://github.com/zjael/proxy-balancer#readme",
+  "dependencies": {
+    "bottleneck": "^2.19.5",
+    "dotenv": "^8.1.0",
+    "node-fetch": "^2.6.0",
+    "proxy-agent": "^3.1.0"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^6.2.1"
+  }
+}
