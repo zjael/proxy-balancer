@@ -1,7 +1,8 @@
 # proxy-balancer
 
+[![package version](https://img.shields.io/npm/v/proxy-balancer.svg?style=flat-square)](https://npmjs.org/package/proxy-balancer)
 [![make a pull request](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
 > Proxy Load Balancer
 
