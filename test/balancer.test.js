@@ -64,9 +64,9 @@ describe('Proxy Balancer', () => {
       res.writeHead(200, {'Content-type':'text/plan'});
       res.write('test');
       res.end();
-    }).listen(80);
+    }).listen(8080);
 
-    balancer.request('http://127.0.0.1:80')
+    balancer.request('http://127.0.0.1:8080')
       .then(res => res.text())
       .then(body => {
         expect(body).to.equal('test')
