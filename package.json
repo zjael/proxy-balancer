@@ -1,6 +1,6 @@
 {
   "name": "proxy-balancer",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Proxy load balancer",
   "main": "./lib/balancer.js",
   "engines": {
