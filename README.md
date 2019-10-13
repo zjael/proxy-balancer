@@ -1,10 +1,10 @@
 # proxy-balancer
 
-[![Build status](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Factions-badge.atrox.dev%2Fzjael%2Fproxy-balancer%2Fbadge&style=flat-square&label=build&logo=none)](https://actions-badge.atrox.dev/zjael/proxy-balancer/goto)
-[![Package version](https://img.shields.io/npm/v/proxy-balancer.svg?style=flat-square)](https://npmjs.org/package/proxy-balancer)
-[![NPM downloads](https://img.shields.io/npm/dm/proxy-balancer?style=flat-square)](https://npmjs.org/package/proxy-balancer)
-[![Make a pull request](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
-[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+[![Build status](https://github.com/zjael/proxy-balancer/workflows/Node%20CI/badge.svg)](https://github.com/zjael/proxy-balancer/actions)
+[![Package version](https://img.shields.io/npm/v/proxy-balancer.svg)](https://npmjs.org/package/proxy-balancer)
+[![NPM downloads](https://img.shields.io/npm/dm/proxy-balancer)](https://npmjs.org/package/proxy-balancer)
+[![Make a pull request](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](http://makeapullrequest.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen.svg)](https://opensource.org/licenses/MIT)
 
 > Proxy Load Balancer
 
@@ -12,7 +12,6 @@
 
 - [Install](#install)
 - [Usage](#usage)
-- [Contribute](#contribute)
 - [License](#license)
 
 ## Install
