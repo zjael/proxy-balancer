@@ -4,7 +4,7 @@
   "description": "Proxy load balancer",
   "main": "./lib/balancer.js",
   "engines": {
-    "node": ">=11.0"
+    "node": ">=10.0"
   },
   "scripts": {
     "test": "mocha --timeout 10000 --exit"
