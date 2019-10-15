@@ -5,7 +5,8 @@ const balancer = new Balancer({
   poolExpired: 1 * 60 * 1000,
   maxConcurrent: 15,
   minTime: 100,
-  timeout: 2 * 1000,
+  timeout: 3 * 1000,
+  proxyTimeout: 2 * 1000,
   proxyFn() {
     return fetch('https://www.cool-proxy.net/proxies.json')
       .then(res => res.json())

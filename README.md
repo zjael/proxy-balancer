@@ -36,8 +36,11 @@ const balancer = new Balancer({
   // Minimum time between each request in milli-seconds.
   minTime: 100,
 
-  // Time in milli-seconds, before an request is timed out.
-  timeout: 2 * 1000,
+  // Time in milli-seconds, to wait for request response.
+  timeout: 3 * 1000,
+
+  // Time in milli-seconds, to wait for proxy connection to establish.
+  proxyTimeout: 2 * 1000,
 
   // Function to populate proxy list, in this case we use a simple web request using node-fetch.
   // Proxies should be in this format:
