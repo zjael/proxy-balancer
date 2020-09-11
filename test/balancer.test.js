@@ -1,7 +1,11 @@
 const Balancer = require('../lib/balancer.js');
-const { expect } = require('chai');
+const chai = require('chai');
+const chaiAsPromised = require('chai-as-promised');
 const http = require('http');
 const utils = require('./utils.js');
+
+const expect = chai.expect;
+chai.use(chaiAsPromised);
 
 const ports = [
   4001,
@@ -37,6 +41,27 @@ describe('Proxy Balancer', () => {
       }
       done();
     });
+  });
+
+  it('should catch proxyFn error', async () => {
+    const errorMsg = "Intended error";
+    const balancer = new Balancer({
+      proxyFn() {
+        throw new Error(errorMsg);
+      }
+    });
+
+    await expect(balancer.request()).to.be.rejectedWith(errorMsg);
+  });
+
+  it('should catch empty proxy list error', async () => {
+    const balancer = new Balancer({
+      proxyFn() {
+        return [];
+      }
+    });
+
+    await expect(balancer.request()).to.be.rejectedWith("Empty proxy list");
   });
 
   it('should use new proxy on each request - round robin', async () => {
