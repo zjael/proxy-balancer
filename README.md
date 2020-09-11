@@ -61,10 +61,12 @@ const balancer = new Balancer({
 balancer.request('https://www.cool-proxy.net')
   .then(res => res.text())
   .then(body => console.log(body))
+  .catch(err => console.error(err))
 
 balancer.request('https://www.cool-proxy.net/proxies.json')
   .then(res => res.json())
   .then(json => console.log(json))
+  .catch(err => console.error(err))
 ```
 
 ## License
