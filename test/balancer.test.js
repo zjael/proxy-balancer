@@ -2,7 +2,7 @@ const Balancer = require('../lib/balancer.js');
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 const http = require('http');
-const utils = require('./utils.js');
+const utils = require('./test-utils');
 
 const expect = chai.expect;
 chai.use(chaiAsPromised);
@@ -22,7 +22,7 @@ describe('Proxy Balancer', () => {
   });
 
   after(done => {
-    for(const server of servers) {
+    for (const server of servers) {
       server.close();
     }
     done();
@@ -36,7 +36,7 @@ describe('Proxy Balancer', () => {
     });
 
     balancer.getProxies().then(proxies => {
-      for(const port of ports) {
+      for (const port of ports) {
         expect(proxies).to.deep.include('http://127.0.0.1:' + port);
       }
       done();
@@ -86,7 +86,7 @@ describe('Proxy Balancer', () => {
     });
 
     http.createServer((req, res) => {
-      res.writeHead(200, {'Content-type':'text/plan'});
+      res.writeHead(200, { 'Content-type': 'text/plan' });
       res.write('test');
       res.end();
     }).listen(8080);

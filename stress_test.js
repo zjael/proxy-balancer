@@ -1,5 +1,5 @@
 const fetch = require('node-fetch');
-const Balancer = require('./lib/balancer.js');
+const Balancer = require('./lib/balancer');
 
 const balancer = new Balancer({
   poolExpired: 1 * 60 * 1000,
