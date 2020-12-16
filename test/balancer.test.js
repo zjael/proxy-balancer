@@ -17,7 +17,7 @@ const ports = [
   4003,
   4004
 ]
-const getProxies = () => ports.map(port => 'http://127.0.0.1:' + port)
+const fetchProxies = () => ports.map(port => 'http://127.0.0.1:' + port)
 
 describe('Proxy Balancer', () => {
   let servers;
@@ -39,12 +39,12 @@ describe('Proxy Balancer', () => {
     done();
   })
 
-  it('should populate proxies using getProxies', (done) => {
+  it('should populate proxies using fetchProxies', (done) => {
     const balancer = new Balancer({
-      getProxies
+      fetchProxies
     });
 
-    balancer.updateProxies().then(proxies => {
+    balancer.getProxies().then(proxies => {
       for (const port of ports) {
         expect(proxies).to.deep.include('http://127.0.0.1:' + port);
       }
@@ -52,30 +52,30 @@ describe('Proxy Balancer', () => {
     });
   });
 
-  it('should catch getProxies error', async () => {
+  it('should catch fetchProxies error', async () => {
     const errorMsg = "Intended error";
     const balancer = new Balancer({
-      getProxies() {
+      fetchProxies() {
         throw new Error(errorMsg);
       }
     });
 
-    await expect(balancer.handleRequest()).to.be.rejectedWith(errorMsg);
+    await expect(balancer.request()).to.be.rejectedWith(errorMsg);
   });
 
   it('should catch empty proxy list error', async () => {
     const balancer = new Balancer({
-      getProxies() {
+      fetchProxies() {
         return [];
       }
     });
 
-    await expect(balancer.handleRequest()).to.be.rejectedWith("Empty proxy list");
+    await expect(balancer.request()).to.be.rejectedWith("Empty proxy list");
   });
 
   it('should use new proxy on each request - round robin', async () => {
     const balancer = new Balancer({
-      getProxies
+      fetchProxies
     });
 
     const first = await balancer.getNext();
@@ -87,7 +87,7 @@ describe('Proxy Balancer', () => {
 
   it('should send request using proxy', (done) => {
     const balancer = new Balancer({
-      getProxies
+      fetchProxies
     });
 
     singleServer = http.createServer((req, res) => {
@@ -108,7 +108,7 @@ describe('Proxy Balancer', () => {
     it('should make requests successfully with axios', (done) => {
       const balancer = new Balancer({
         requestor: axios,
-        getProxies
+        fetchProxies
       });
 
       singleServer = http.createServer((req, res) => {
@@ -117,7 +117,7 @@ describe('Proxy Balancer', () => {
         res.end();
       }).listen(8080);
 
-      balancer.handleRequest('http://127.0.0.1:8080')
+      balancer.request('http://127.0.0.1:8080')
         .then(res => res.data)
         .then(body => {
           expect(body).to.equal('test')
@@ -133,7 +133,7 @@ describe('Proxy Balancer', () => {
             timeout
           })
         }),
-        getProxies
+        fetchProxies
       });
 
       singleServer = http.createServer((req, res) => {
@@ -142,7 +142,7 @@ describe('Proxy Balancer', () => {
         res.end();
       }).listen(8080);
 
-      balancer.handleRequest('http://127.0.0.1:8080')
+      balancer.request('http://127.0.0.1:8080')
         .then(res => res.body)
         .then(body => {
           expect(body).to.equal('test')
@@ -167,7 +167,7 @@ describe('Proxy Balancer', () => {
           })
           return agent
         },
-        getProxies
+        fetchProxies
       });
 
       singleServer = http.createServer((req, res) => {
@@ -176,7 +176,7 @@ describe('Proxy Balancer', () => {
         res.end();
       }).listen(8080);
 
-      balancer.handleRequest('http://127.0.0.1:8080')
+      balancer.request('http://127.0.0.1:8080')
         .then(res => res.data)
         .then(body => {
           expect(body).to.equal('test')

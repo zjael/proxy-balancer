@@ -53,7 +53,20 @@ const balancer = new Balancer({
           .filter(proxy => proxy.working_average > 70)
           .map(proxy => `http://${proxy.ip}:${proxy.port}`)
       })
-  }
+  },
+
+  // specify a request adgent of your choosing, default is node-fetch
+  requestor: axios,
+
+  // optional agent function to use other proxy agents (i.e. tunnel) 
+  // or you can add proxy agent auth settings or 
+  // return a unique agent object
+  agentFn: ({ url, timeout }) => new ProxyAgent(url, {
+    timeout
+  }),
+
+  // optional configs for bottleneck package
+  bottleneckOptions: {}
 });
 
 // Each request will use a fresh proxy, using round robin.
