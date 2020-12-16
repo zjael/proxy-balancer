@@ -6,6 +6,7 @@ const http = require('http');
 const utils = require('./test-utils');
 const axios = require('axios')
 const got = require('got')
+const tunnel = require('tunnel')
 
 const expect = chai.expect;
 chai.use(chaiAsPromised);
@@ -108,7 +109,7 @@ describe('Proxy Balancer', () => {
       })
   });
 
-  context('different agents', () => {
+  context('different requestors', () => {
     it('should make requests successfully with axios', (done) => {
       const balancer = new Balancer({
         requestor: axios,
@@ -152,6 +153,42 @@ describe('Proxy Balancer', () => {
 
       balancer.handleRequest('http://127.0.0.1:8080')
         .then(res => res.body)
+        .then(body => {
+          expect(body).to.equal('test')
+          done();
+        })
+    });
+  })
+
+  context('different proxy agents', () => {
+    it('should make requests successfully with tunnel', (done) => {
+      const balancer = new Balancer({
+        requestor: axios,
+        agentFn() {
+          const agent = tunnel.httpsOverHttp({
+            proxy: {
+              host: '127.0.0.1',
+              port: ports[0],
+              headers: {
+                'User-Agent': 'Node'
+              }
+            }
+          })
+          return agent
+        },
+        proxyFn() {
+          return ports.map(port => 'http://127.0.0.1:' + port);
+        }
+      });
+
+      singleServer = http.createServer((req, res) => {
+        res.writeHead(200, { 'Content-type': 'text/plan' });
+        res.write('test');
+        res.end();
+      }).listen(8080);
+
+      balancer.handleRequest('http://127.0.0.1:8080')
+        .then(res => res.data)
         .then(body => {
           expect(body).to.equal('test')
           done();
