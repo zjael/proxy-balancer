@@ -108,7 +108,7 @@ describe('Proxy Balancer', () => {
 
   it('should make requests successfully with axios', (done) => {
     const balancer = new Balancer({
-      fetchRequestor: axios,
+      requestor: axios,
       proxyFn() {
         return ports.map(port => 'http://127.0.0.1:' + port);
       }
@@ -121,7 +121,7 @@ describe('Proxy Balancer', () => {
     }).listen(8080);
 
     balancer.handleRequest('http://127.0.0.1:8080')
-      .then(res => res.text())
+      .then(res => res.data)
       .then(body => {
         expect(body).to.equal('test')
         done();
