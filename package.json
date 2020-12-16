@@ -7,7 +7,8 @@
     "node": ">=10.0"
   },
   "scripts": {
-    "test": "mocha --timeout 10000 --exit"
+    "test": "mocha --timeout 10000 --exit",
+    "stress": "node stress_test.js"
   },
   "keywords": [
     "proxy",

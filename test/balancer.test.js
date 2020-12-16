@@ -1,4 +1,4 @@
-const Balancer = require('../lib/balancer.js');
+const Balancer = require('../lib/balancer');
 const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 const http = require('http');
@@ -51,7 +51,7 @@ describe('Proxy Balancer', () => {
       }
     });
 
-    await expect(balancer.request()).to.be.rejectedWith(errorMsg);
+    await expect(balancer.handleRequest()).to.be.rejectedWith(errorMsg);
   });
 
   it('should catch empty proxy list error', async () => {
@@ -61,7 +61,7 @@ describe('Proxy Balancer', () => {
       }
     });
 
-    await expect(balancer.request()).to.be.rejectedWith("Empty proxy list");
+    await expect(balancer.handleRequest()).to.be.rejectedWith("Empty proxy list");
   });
 
   it('should use new proxy on each request - round robin', async () => {

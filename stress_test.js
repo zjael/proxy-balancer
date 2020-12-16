@@ -20,7 +20,7 @@ const balancer = new Balancer({
 
 let promises = [];
 for (let i = 0; i < 100; i++) {
-  promises.push(balancer.request('https://ipv4.icanhazip.com')
+  promises.push(balancer.handleRequest('https://ipv4.icanhazip.com')
     .then(res => res.text())
     .then(body => {
       body = body.trim();
