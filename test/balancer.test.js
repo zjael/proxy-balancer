@@ -17,6 +17,7 @@ const ports = [
   4003,
   4004
 ]
+const getProxies = () => ports.map(port => 'http://127.0.0.1:' + port)
 
 describe('Proxy Balancer', () => {
   let servers;
@@ -38,14 +39,12 @@ describe('Proxy Balancer', () => {
     done();
   })
 
-  it('should populate proxies using proxyFn', (done) => {
+  it('should populate proxies using getProxies', (done) => {
     const balancer = new Balancer({
-      proxyFn() {
-        return ports.map(port => 'http://127.0.0.1:' + port);
-      }
+      getProxies
     });
 
-    balancer.getProxies().then(proxies => {
+    balancer.updateProxies().then(proxies => {
       for (const port of ports) {
         expect(proxies).to.deep.include('http://127.0.0.1:' + port);
       }
@@ -53,10 +52,10 @@ describe('Proxy Balancer', () => {
     });
   });
 
-  it('should catch proxyFn error', async () => {
+  it('should catch getProxies error', async () => {
     const errorMsg = "Intended error";
     const balancer = new Balancer({
-      proxyFn() {
+      getProxies() {
         throw new Error(errorMsg);
       }
     });
@@ -66,7 +65,7 @@ describe('Proxy Balancer', () => {
 
   it('should catch empty proxy list error', async () => {
     const balancer = new Balancer({
-      proxyFn() {
+      getProxies() {
         return [];
       }
     });
@@ -76,9 +75,7 @@ describe('Proxy Balancer', () => {
 
   it('should use new proxy on each request - round robin', async () => {
     const balancer = new Balancer({
-      proxyFn() {
-        return ports.map(port => 'http://127.0.0.1:' + port);
-      }
+      getProxies
     });
 
     const first = await balancer.getNext();
@@ -90,9 +87,7 @@ describe('Proxy Balancer', () => {
 
   it('should send request using proxy', (done) => {
     const balancer = new Balancer({
-      proxyFn() {
-        return ports.map(port => 'http://127.0.0.1:' + port);
-      }
+      getProxies
     });
 
     singleServer = http.createServer((req, res) => {
@@ -113,9 +108,7 @@ describe('Proxy Balancer', () => {
     it('should make requests successfully with axios', (done) => {
       const balancer = new Balancer({
         requestor: axios,
-        proxyFn() {
-          return ports.map(port => 'http://127.0.0.1:' + port);
-        }
+        getProxies
       });
 
       singleServer = http.createServer((req, res) => {
@@ -140,9 +133,7 @@ describe('Proxy Balancer', () => {
             timeout
           })
         }),
-        proxyFn() {
-          return ports.map(port => 'http://127.0.0.1:' + port);
-        }
+        getProxies
       });
 
       singleServer = http.createServer((req, res) => {
@@ -176,9 +167,7 @@ describe('Proxy Balancer', () => {
           })
           return agent
         },
-        proxyFn() {
-          return ports.map(port => 'http://127.0.0.1:' + port);
-        }
+        getProxies
       });
 
       singleServer = http.createServer((req, res) => {
