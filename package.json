@@ -30,6 +30,7 @@
   "dependencies": {
     "bottleneck": "^2.19.5",
     "node-fetch": "^2.6.0",
+    "rate-limiter-flexible": "^2.1.14",
     "simple-proxy-agent": "^1.1.0"
   },
   "devDependencies": {
