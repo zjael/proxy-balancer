@@ -46,7 +46,7 @@ describe('Proxy Balancer', () => {
 
     balancer.getProxies().then(proxies => {
       for (const port of ports) {
-        expect(proxies).to.deep.include('http://127.0.0.1:' + port);
+        expect(proxies).to.deep.include({ url: 'http://127.0.0.1:' + port });
       }
       done();
     });
@@ -81,8 +81,8 @@ describe('Proxy Balancer', () => {
     const first = await balancer.getNext();
     const second = await balancer.getNext();
 
-    expect(first).to.equal('http://127.0.0.1:' + ports[0]);
-    expect(second).to.equal('http://127.0.0.1:' + ports[1]);
+    expect(first).to.deep.equal({ url: 'http://127.0.0.1:' + ports[0] });
+    expect(second).to.deep.equal({ url: 'http://127.0.0.1:' + ports[1] });
   });
 
   it('should send request using proxy', (done) => {
@@ -128,8 +128,8 @@ describe('Proxy Balancer', () => {
     it('should make requests successfully with got', (done) => {
       const balancer = new Balancer({
         requestor: got,
-        agentFn: ({ url, timeout }) => ({
-          https: new ProxyAgent(url, {
+        agentFn: ({ proxy, timeout }) => ({
+          https: new ProxyAgent(proxy.url, {
             timeout
           })
         }),
