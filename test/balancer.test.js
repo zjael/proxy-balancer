@@ -1,9 +1,11 @@
 const Balancer = require('../lib/balancer');
 const chai = require('chai');
+const ProxyAgent = require('simple-proxy-agent');
 const chaiAsPromised = require('chai-as-promised');
 const http = require('http');
 const utils = require('./test-utils');
 const axios = require('axios')
+const got = require('got')
 
 const expect = chai.expect;
 chai.use(chaiAsPromised);
@@ -106,25 +108,54 @@ describe('Proxy Balancer', () => {
       })
   });
 
-  it('should make requests successfully with axios', (done) => {
-    const balancer = new Balancer({
-      requestor: axios,
-      proxyFn() {
-        return ports.map(port => 'http://127.0.0.1:' + port);
-      }
+  context('different agents', () => {
+    it('should make requests successfully with axios', (done) => {
+      const balancer = new Balancer({
+        requestor: axios,
+        proxyFn() {
+          return ports.map(port => 'http://127.0.0.1:' + port);
+        }
+      });
+
+      singleServer = http.createServer((req, res) => {
+        res.writeHead(200, { 'Content-type': 'text/plan' });
+        res.write('test');
+        res.end();
+      }).listen(8080);
+
+      balancer.handleRequest('http://127.0.0.1:8080')
+        .then(res => res.data)
+        .then(body => {
+          expect(body).to.equal('test')
+          done();
+        })
     });
 
-    singleServer = http.createServer((req, res) => {
-      res.writeHead(200, { 'Content-type': 'text/plan' });
-      res.write('test');
-      res.end();
-    }).listen(8080);
+    it('should make requests successfully with got', (done) => {
+      const balancer = new Balancer({
+        requestor: got,
+        agentFn: ({ url, timeout }) => ({
+          https: new ProxyAgent(url, {
+            timeout
+          })
+        }),
+        proxyFn() {
+          return ports.map(port => 'http://127.0.0.1:' + port);
+        }
+      });
 
-    balancer.handleRequest('http://127.0.0.1:8080')
-      .then(res => res.data)
-      .then(body => {
-        expect(body).to.equal('test')
-        done();
-      })
-  });
+      singleServer = http.createServer((req, res) => {
+        res.writeHead(200, { 'Content-type': 'text/plan' });
+        res.write('test');
+        res.end();
+      }).listen(8080);
+
+      balancer.handleRequest('http://127.0.0.1:8080')
+        .then(res => res.body)
+        .then(body => {
+          expect(body).to.equal('test')
+          done();
+        })
+    });
+  })
 });
