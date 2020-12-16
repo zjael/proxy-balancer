@@ -33,6 +33,7 @@
     "simple-proxy-agent": "^1.1.0"
   },
   "devDependencies": {
+    "axios": "^0.21.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "mocha": "^8.0.1"

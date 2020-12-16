@@ -3,6 +3,7 @@ const chai = require('chai');
 const chaiAsPromised = require('chai-as-promised');
 const http = require('http');
 const utils = require('./test-utils');
+const axios = require('axios')
 
 const expect = chai.expect;
 chai.use(chaiAsPromised);
@@ -16,6 +17,7 @@ const ports = [
 
 describe('Proxy Balancer', () => {
   let servers;
+  let singleServer;
   before(done => {
     servers = ports.map(port => utils.createProxyServer().listen(port));
     done();
@@ -25,6 +27,11 @@ describe('Proxy Balancer', () => {
     for (const server of servers) {
       server.close();
     }
+    done();
+  })
+
+  afterEach(done => {
+    if (singleServer) singleServer.close()
     done();
   })
 
@@ -85,13 +92,35 @@ describe('Proxy Balancer', () => {
       }
     });
 
-    http.createServer((req, res) => {
+    singleServer = http.createServer((req, res) => {
       res.writeHead(200, { 'Content-type': 'text/plan' });
       res.write('test');
       res.end();
     }).listen(8080);
 
     balancer.request('http://127.0.0.1:8080')
+      .then(res => res.text())
+      .then(body => {
+        expect(body).to.equal('test')
+        done();
+      })
+  });
+
+  it('should make requests successfully with axios', (done) => {
+    const balancer = new Balancer({
+      fetchRequestor: axios,
+      proxyFn() {
+        return ports.map(port => 'http://127.0.0.1:' + port);
+      }
+    });
+
+    singleServer = http.createServer((req, res) => {
+      res.writeHead(200, { 'Content-type': 'text/plan' });
+      res.write('test');
+      res.end();
+    }).listen(8080);
+
+    balancer.handleRequest('http://127.0.0.1:8080')
       .then(res => res.text())
       .then(body => {
         expect(body).to.equal('test')
