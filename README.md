@@ -30,7 +30,7 @@ const balancer = new Balancer({
   // Time in milli-seconds, until the proxy list will be updated.
   poolExpired: 1 * 60 * 1000,
 
-  // Max concurrent requests at once.
+  // Max concurrent requests at once. Set to null for infinite
   maxConcurrent: 15,
 
   // Minimum time between each request in milli-seconds.
