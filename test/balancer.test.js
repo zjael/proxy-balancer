@@ -25,6 +25,10 @@ const createTestServer = () => http.createServer((req, res) => {
   res.write('test');
   res.end();
 }).listen(8080);
+const createFailureServer = () => http.createServer((req, res) => {
+  res.statusCode = 500
+  res.end();
+}).listen(8080);
 
 describe('Proxy Balancer', () => {
   let servers;
@@ -48,66 +52,70 @@ describe('Proxy Balancer', () => {
     done();
   })
 
-  it('should populate proxies using fetchProxies', (done) => {
-    const balancer = new Balancer({
-      fetchProxies
-    });
+  context('fetchProxies(..)', () => {
+    it('should populate proxies using fetchProxies', (done) => {
+      const balancer = new Balancer({
+        fetchProxies
+      });
 
-    balancer.getProxies().then(proxies => {
-      for (const port of ports) {
-        expect(proxies).to.deep.include({ url: 'http://127.0.0.1:' + port });
-      }
-      done();
-    });
-  });
-
-  it('should catch fetchProxies error', async () => {
-    const errorMsg = "Intended error";
-    const balancer = new Balancer({
-      fetchProxies() {
-        throw new Error(errorMsg);
-      }
-    });
-
-    await expect(balancer.request()).to.be.rejectedWith(errorMsg);
-  });
-
-  it('should catch empty proxy list error', async () => {
-    const balancer = new Balancer({
-      fetchProxies() {
-        return [];
-      }
-    });
-
-    await expect(balancer.request()).to.be.rejectedWith("Empty proxy list");
-  });
-
-  it('should use new proxy on each request - round robin', async () => {
-    const balancer = new Balancer({
-      fetchProxies
-    });
-
-    const first = await balancer.getNext();
-    const second = await balancer.getNext();
-
-    expect(first).to.deep.equal({ url: 'http://127.0.0.1:' + ports[0] });
-    expect(second).to.deep.equal({ url: 'http://127.0.0.1:' + ports[1] });
-  });
-
-  it('should send request using proxy', (done) => {
-    const balancer = new Balancer({
-      fetchProxies
-    });
-
-    singleServer = createTestServer()
-
-    balancer.request('http://127.0.0.1:8080')
-      .then(res => res.text())
-      .then(body => {
-        expect(body).to.equal('test')
+      balancer.getProxies().then(proxies => {
+        for (const port of ports) {
+          expect(proxies).to.deep.include({ url: 'http://127.0.0.1:' + port });
+        }
         done();
-      })
-  });
+      });
+    });
+
+    it('should catch fetchProxies error', async () => {
+      const errorMsg = "Intended error";
+      const balancer = new Balancer({
+        fetchProxies() {
+          throw new Error(errorMsg);
+        }
+      });
+
+      await expect(balancer.request()).to.be.rejectedWith(errorMsg);
+    });
+
+    it('should catch empty proxy list error', async () => {
+      const balancer = new Balancer({
+        fetchProxies() {
+          return [];
+        }
+      });
+
+      await expect(balancer.request()).to.be.rejectedWith("Empty proxy list");
+    });
+  })
+
+  context('base functionalities', () => {
+    it('should use new proxy on each request - round robin', async () => {
+      const balancer = new Balancer({
+        fetchProxies
+      });
+
+      const first = await balancer.getNext();
+      const second = await balancer.getNext();
+
+      expect(first).to.deep.equal({ url: 'http://127.0.0.1:' + ports[0] });
+      expect(second).to.deep.equal({ url: 'http://127.0.0.1:' + ports[1] });
+    });
+
+    it('should send request using proxy', (done) => {
+      const balancer = new Balancer({
+        fetchProxies
+      });
+
+      singleServer = createTestServer()
+
+      balancer.request('http://127.0.0.1:8080')
+        .then(res => res.text())
+        .then(body => {
+          expect(body).to.equal('test')
+          done();
+        })
+    });
+  })
 
   context('different requestors', () => {
     it('should make requests successfully with axios', (done) => {
@@ -187,14 +195,74 @@ describe('Proxy Balancer', () => {
         fetchProxies
       });
 
-      singleServer = createTestServer()
+      singleServer = createFailureServer()
 
       // creates function wrapper
       sinon.spy(balancer, 'request')
 
-      await balancer.request('http://127.0.0.1:8080')
+      try {
+        await balancer.request('http://127.0.0.1:8080')
+      } catch {
+        expect(balancer.request.calledOnce).to.be.true
+      }
+    });
 
-      expect(balancer.request.calledOnce).to.be.true
+    it('retryNextIp should include retryCount, timesThisIpRetried, and ipsTried correctly', async () => {
+      let ipsTriedVal
+      let retryCountVal
+      let timesThisIpRetriedVal
+      const balancer = new Balancer({
+        retryFn: ({ error, retryCount, timesThisIpRetried, ipsTried }) => {
+          retryCountVal = retryCount
+          ipsTriedVal = ipsTried
+          timesThisIpRetriedVal = timesThisIpRetried
+          return retryCount >= 2 ? retryOptions.abort : retryOptions.retryNextIp
+        },
+        fetchProxies
+      });
+
+      singleServer = createFailureServer()
+
+      // creates function wrapper
+      sinon.spy(balancer, 'request')
+
+      try {
+        await balancer.request('http://127.0.0.1:8080')
+      } catch {
+        expect(balancer.request.calledThrice).to.be.true
+        expect(ipsTriedVal).to.equal(3)
+        expect(retryCountVal).to.equal(2)
+        expect(timesThisIpRetriedVal).to.equal(0)
+      }
+    });
+
+    it('retrySameIp should include retryCount, timesThisIpRetried, and ipsTried correctly', async () => {
+      let ipsTriedVal
+      let retryCountVal
+      let timesThisIpRetriedVal
+      const balancer = new Balancer({
+        retryFn: ({ error, retryCount, timesThisIpRetried, ipsTried }) => {
+          retryCountVal = retryCount
+          ipsTriedVal = ipsTried
+          timesThisIpRetriedVal = timesThisIpRetried
+          return retryCount >= 2 ? retryOptions.abort : retryOptions.retrySameIp
+        },
+        fetchProxies
+      });
+
+      singleServer = createFailureServer()
+
+      // creates function wrapper
+      sinon.spy(balancer, 'request')
+
+      try {
+        await balancer.request('http://127.0.0.1:8080')
+      } catch {
+        expect(balancer.request.calledThrice).to.be.true
+        expect(ipsTriedVal).to.equal(1)
+        expect(retryCountVal).to.equal(2)
+        expect(timesThisIpRetriedVal).to.equal(2)
+      }
     });
   })
 });
