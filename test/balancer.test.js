@@ -20,6 +20,11 @@ const ports = [
   4004
 ]
 const fetchProxies = () => ports.map(port => 'http://127.0.0.1:' + port)
+const createTestServer = () => http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-type': 'text/plan' });
+  res.write('test');
+  res.end();
+}).listen(8080);
 
 describe('Proxy Balancer', () => {
   let servers;
@@ -94,11 +99,7 @@ describe('Proxy Balancer', () => {
       fetchProxies
     });
 
-    singleServer = http.createServer((req, res) => {
-      res.writeHead(200, { 'Content-type': 'text/plan' });
-      res.write('test');
-      res.end();
-    }).listen(8080);
+    singleServer = createTestServer()
 
     balancer.request('http://127.0.0.1:8080')
       .then(res => res.text())
@@ -115,11 +116,7 @@ describe('Proxy Balancer', () => {
         fetchProxies
       });
 
-      singleServer = http.createServer((req, res) => {
-        res.writeHead(200, { 'Content-type': 'text/plan' });
-        res.write('test');
-        res.end();
-      }).listen(8080);
+      singleServer = createTestServer()
 
       balancer.request('http://127.0.0.1:8080')
         .then(res => res.data)
@@ -140,11 +137,7 @@ describe('Proxy Balancer', () => {
         fetchProxies
       });
 
-      singleServer = http.createServer((req, res) => {
-        res.writeHead(200, { 'Content-type': 'text/plan' });
-        res.write('test');
-        res.end();
-      }).listen(8080);
+      singleServer = createTestServer()
 
       balancer.request('http://127.0.0.1:8080')
         .then(res => res.body)
@@ -174,11 +167,7 @@ describe('Proxy Balancer', () => {
         fetchProxies
       });
 
-      singleServer = http.createServer((req, res) => {
-        res.writeHead(200, { 'Content-type': 'text/plan' });
-        res.write('test');
-        res.end();
-      }).listen(8080);
+      singleServer = createTestServer()
 
       balancer.request('http://127.0.0.1:8080')
         .then(res => res.data)
@@ -198,11 +187,7 @@ describe('Proxy Balancer', () => {
         fetchProxies
       });
 
-      singleServer = http.createServer((req, res) => {
-        res.writeHead(200, { 'Content-type': 'text/plan' });
-        res.write('test');
-        res.end();
-      }).listen(8080);
+      singleServer = createTestServer()
 
       // creates function wrapper
       sinon.spy(balancer, 'request')
