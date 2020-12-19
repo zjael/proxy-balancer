@@ -8,6 +8,7 @@ const axios = require('axios')
 const got = require('got')
 const tunnel = require('tunnel')
 
+const retryOptions = Balancer.retryOptions
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 
@@ -182,6 +183,30 @@ describe('Proxy Balancer', () => {
           expect(body).to.equal('test')
           done();
         })
+    });
+  })
+
+  context('retryFn(..)', () => {
+    it('should abort when passing abort', () => {
+      const balancer = new Balancer({
+        retryFn: ({ error, retryCount, timesThisIpRetried, ipsTried }) => {
+          return retryOptions.abort
+        },
+        fetchProxies
+      });
+
+      //   singleServer = http.createServer((req, res) => {
+      //     res.writeHead(200, { 'Content-type': 'text/plan' });
+      //     res.write('test');
+      //     res.end();
+      //   }).listen(8080);
+
+      //   balancer.request('http://127.0.0.1:8080')
+      //     .then(res => res.data)
+      //     .then(body => {
+      //       expect(body).to.equal('test')
+      //       done();
+      //     })
     });
   })
 });

@@ -45,7 +45,7 @@ const balancer = new Balancer({
   // Function to populate proxy list, in this case we use a simple web request using node-fetch.
   // Proxies should be in this format:
   // [ http://0.0.0.0:8080, https://0.0.0.0:8081, socks4://0.0.0.0:8000 ]
-  proxyFn() {
+  fetchProxies: () => {
     return fetch('https://www.cool-proxy.net/proxies.json')
       .then(res => res.json())
       .then(proxies => {
@@ -60,13 +60,26 @@ const balancer = new Balancer({
 
   // optional agent function to use other proxy agents (i.e. tunnel) 
   // or you can add proxy agent auth settings or 
-  // return a unique agent object
+  // return a unique agent object (supports async/await)
   agentFn: ({ url, timeout }) => new ProxyAgent(url, {
     timeout
   }),
 
   // optional configs for bottleneck package
-  bottleneckOptions: {}
+  bottleneckOptions: {},
+
+  // Optional retry function logic (supports async/await), you can get the retry options like so
+  // es6: import Balancer, { retryOptions } from 'proxy-balancer'
+  // es5: const retryOptions = Balancer.retryOptions
+  retryFn: ({ error, retryCount, timesThisIpRetried, ipsTried }) => {
+    if (retryCount >= 3) {
+      return retryOptions.abort
+    }
+    if (error.name && (error.name === "FetchError" || error.name === "AbortError")) {
+      return retryOptions.retryNextIp
+    }
+    return retryOptions.abort
+  }
 });
 
 // Each request will use a fresh proxy, using round robin.
