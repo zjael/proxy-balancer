@@ -7,6 +7,7 @@ const utils = require('./test-utils');
 const axios = require('axios')
 const got = require('got')
 const tunnel = require('tunnel')
+const sinon = require('sinon')
 
 const retryOptions = Balancer.retryOptions
 const expect = chai.expect;
@@ -23,6 +24,7 @@ const fetchProxies = () => ports.map(port => 'http://127.0.0.1:' + port)
 describe('Proxy Balancer', () => {
   let servers;
   let singleServer;
+
   before(done => {
     servers = ports.map(port => utils.createProxyServer().listen(port));
     done();
@@ -32,6 +34,7 @@ describe('Proxy Balancer', () => {
     for (const server of servers) {
       server.close();
     }
+    sinon.restore();
     done();
   })
 
@@ -187,7 +190,7 @@ describe('Proxy Balancer', () => {
   })
 
   context('retryFn(..)', () => {
-    it('should abort when passing abort', () => {
+    it('should abort when passing abort', async () => {
       const balancer = new Balancer({
         retryFn: ({ error, retryCount, timesThisIpRetried, ipsTried }) => {
           return retryOptions.abort
@@ -195,18 +198,18 @@ describe('Proxy Balancer', () => {
         fetchProxies
       });
 
-      //   singleServer = http.createServer((req, res) => {
-      //     res.writeHead(200, { 'Content-type': 'text/plan' });
-      //     res.write('test');
-      //     res.end();
-      //   }).listen(8080);
+      singleServer = http.createServer((req, res) => {
+        res.writeHead(200, { 'Content-type': 'text/plan' });
+        res.write('test');
+        res.end();
+      }).listen(8080);
 
-      //   balancer.request('http://127.0.0.1:8080')
-      //     .then(res => res.data)
-      //     .then(body => {
-      //       expect(body).to.equal('test')
-      //       done();
-      //     })
+      // creates function wrapper
+      sinon.spy(balancer, 'request')
+
+      await balancer.request('http://127.0.0.1:8080')
+
+      expect(balancer.request.calledOnce).to.be.true
     });
   })
 });
