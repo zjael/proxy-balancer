@@ -91,6 +91,7 @@ describe('Proxy Balancer', () => {
 
   context('ip limiter', () => {
     it('should limit requests based on callsPerDuration', async () => {
+      // TODO: needs to be set to post duration wait not duration
       let next, proxies
       const duration = 100
       const balancer = new Balancer({
@@ -128,6 +129,7 @@ describe('Proxy Balancer', () => {
       }
 
       // wait duration so you can use the proxy again
+      // this isn't the right duration
       await delay(duration)
 
       await call()
@@ -172,6 +174,38 @@ describe('Proxy Balancer', () => {
       next = await balancer.nextProxyIndex(proxies)
       // expect to reset to 0
       expect(next).to.equal(0)
+    })
+
+    it('calls handleNoAvailableProxies when no available proxies', async () => {
+      let noProxies
+      const duration = 100
+      const balancer = new Balancer({
+        callsPerDuration: 1,
+        duration,
+        timeout: 0,
+        postDurationWait: 1000,
+        fetchProxies: () => fetchProxies(1),
+        handleNoAvailableProxies: () => {
+          noProxies = true
+        }
+      });
+
+      singleServer = createTestServer()
+
+      const call = () => balancer.request('http://127.0.0.1:8080')
+
+      await call()
+
+      expect(!noProxies).to.be.true
+
+      try {
+        await call()
+      } catch {
+        const fail = true
+        expect(fail).to.be.true
+      }
+
+      expect(noProxies).to.be.true
     })
   })
 
