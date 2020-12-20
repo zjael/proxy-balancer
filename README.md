@@ -85,10 +85,13 @@ const balancer = new Balancer({
     return retryOptions.abort
   },
 
-  // optionally fine-tune timeouts, you need all 3 values to use this limiter
-  callsPerDuration: 5,
-  duration: 60 * 1000,
-  postDurationWait: 5 * 60 * 1000,
+  // optional limiter to fine tune timeouts
+  callsPerDuration: 5, // required
+  duration: 60 * 1000, // required
+  postDurationWait: 5 * 60 * 1000, // required
+  handleNoAvailableProxies: () => { // optional
+    // optionally handle no available proxies, i.e. request more proxies
+  }
 
   // optional proxy formatting function if you're using unique proxy objects
   formatProxy: (proxy) => {
