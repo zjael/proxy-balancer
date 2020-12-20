@@ -92,7 +92,7 @@ describe('Proxy Balancer', () => {
   context('ip limiter', () => {
     it.only('should limit requests based on frequency', async () => {
       const balancer = new Balancer({
-        callsPerDuration: 1,
+        callsPerDuration: 2,
         duration: 100,
         timeout: 0,
         postDurationWait: 1000,
@@ -106,7 +106,15 @@ describe('Proxy Balancer', () => {
       await call()
       await call()
 
-      expect(true).to.be.true
+      const success = true
+      expect(success).to.be.true
+
+      try {
+        await call()
+      } catch (err) {
+        const failure = true
+        expect(failure).to.be.true
+      }
     })
   })
 
