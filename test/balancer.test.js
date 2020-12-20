@@ -134,7 +134,7 @@ describe('Proxy Balancer', () => {
       expect(success).to.be.true
     })
 
-    xit('goes to next proxy after limit reached', async () => {
+    it('goes to next proxy after limit reached', async () => {
       let next, proxies
       const duration = 100
       const balancer = new Balancer({
@@ -149,8 +149,6 @@ describe('Proxy Balancer', () => {
 
       const call = () => balancer.request('http://127.0.0.1:8080')
 
-      await call()
-
       proxies = await balancer.getProxies()
       next = await balancer.nextProxyIndex(proxies)
       expect(next).to.equal(1)
@@ -161,11 +159,19 @@ describe('Proxy Balancer', () => {
       next = await balancer.nextProxyIndex(proxies)
       expect(next).to.equal(2)
 
+
       await call()
 
       proxies = await balancer.getProxies()
       next = await balancer.nextProxyIndex(proxies)
       expect(next).to.equal(3)
+
+      await call()
+
+      proxies = await balancer.getProxies()
+      next = await balancer.nextProxyIndex(proxies)
+      // expect to reset to 0
+      expect(next).to.equal(0)
     })
   })
 
