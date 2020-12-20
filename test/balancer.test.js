@@ -19,7 +19,7 @@ const ports = [
   4003,
   4004
 ]
-const fetchProxies = (i) => (i ? 'http://127.0.0.1:' + ports[i] : ports.map(port => 'http://127.0.0.1:' + port))
+const fetchProxies = (i) => (i ? ['http://127.0.0.1:' + ports[i]] : ports.map(port => 'http://127.0.0.1:' + port))
 const createTestServer = () => http.createServer((req, res) => {
   res.writeHead(200, { 'Content-type': 'text/plan' });
   res.write('test');
@@ -90,7 +90,7 @@ describe('Proxy Balancer', () => {
   })
 
   context('ip limiter', () => {
-    xit('should limit requests based on frequency', async (done) => {
+    it.only('should limit requests based on frequency', async () => {
       const balancer = new Balancer({
         callsPerDuration: 1,
         duration: 100,
@@ -99,21 +99,14 @@ describe('Proxy Balancer', () => {
         fetchProxies: () => fetchProxies(1)
       });
 
-      singleServer = http.createServer((req, res) => {
-        res.writeHead(200, { 'Content-type': 'text/plan' });
-        res.write('test');
-        res.end();
-      }).listen(8080);
+      singleServer = createTestServer()
 
       const call = () => balancer.request('http://127.0.0.1:8080')
 
       await call()
       await call()
-      await call()
-      await call()
 
       expect(true).to.be.true
-      done()
     })
   })
 
