@@ -91,14 +91,14 @@ describe('Proxy Balancer', () => {
 
   context('ip limiter', () => {
     it('should limit requests based on callsPerDuration', async () => {
-      // TODO: needs to be set to post duration wait not duration
       let next, proxies
-      const duration = 100
+      const duration = 100 / 1000
+      const postDurationWait = 200
       const balancer = new Balancer({
         callsPerDuration: 2,
         duration,
         timeout: 0,
-        postDurationWait: 1000,
+        postDurationWait,
         fetchProxies: () => fetchProxies(1)
       });
 
@@ -116,21 +116,32 @@ describe('Proxy Balancer', () => {
 
       proxies = await balancer.getProxies()
       next = await balancer.nextProxyIndex(proxies)
-      expect(next).to.equal(0)
+      expect(next).to.equal(null)
 
       const success = true
       expect(success).to.be.true
 
+      failure = false
       try {
         await call()
       } catch (err) {
-        const failure = true
-        expect(failure).to.be.true
+        failure = true
       }
+      expect(failure).to.be.true
+      failure = false
 
-      // wait duration so you can use the proxy again
-      // this isn't the right duration
-      await delay(duration)
+      // wait partial duration and expect failure
+      await delay(postDurationWait / 2)
+
+      try {
+        await call()
+      } catch {
+        failure = true
+      }
+      expect(failure).to.be.true
+
+      // wait full duration and expect success
+      await delay(postDurationWait / 2)
 
       await call()
       expect(success).to.be.true
