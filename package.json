@@ -30,7 +30,7 @@
   "dependencies": {
     "bottleneck": "^2.19.5",
     "node-fetch": "^2.6.0",
-    "rate-limiter-flexible": "^2.1.14",
+    "rate-limiter-flexible": "^2.1.15",
     "simple-proxy-agent": "^1.1.0"
   },
   "devDependencies": {
@@ -39,6 +39,7 @@
     "chai-as-promised": "^7.1.1",
     "got": "^11.8.1",
     "mocha": "^8.0.1",
+    "sinon": "^9.2.2",
     "tunnel": "0.0.6"
   }
 }
