@@ -68,7 +68,7 @@ const balancer = new Balancer({
   // optional configs for bottleneck package
   bottleneckOptions: {},
 
-  // Optional retry function logic (supports async/await), you can get the retry options like so
+  // Optional retry function logic (supports async/await)
   // es6: import Balancer, { retryOptions } from 'proxy-balancer'
   // es5: const retryOptions = Balancer.retryOptions
   retryFn: ({ error, retryCount, timesThisIpRetried, ipsTried }) => {

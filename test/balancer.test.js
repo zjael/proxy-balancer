@@ -27,6 +27,7 @@ const createTestServer = () => http.createServer((req, res) => {
 }).listen(8080);
 const createFailureServer = () => http.createServer((req, res) => {
   res.statusCode = 500
+  res.write('fail');
   res.end();
 }).listen(8080);
 
@@ -187,9 +188,11 @@ describe('Proxy Balancer', () => {
   })
 
   context('retryFn(..)', () => {
-    it('should abort when passing abort', async () => {
+    it('aborts and returns error', async () => {
+      let err
       const balancer = new Balancer({
-        retryFn: ({ error, retryCount, timesThisIpRetried, ipsTried }) => {
+        retryFn: async ({ error, retryCount, timesThisIpRetried, ipsTried }) => {
+          err = error
           return retryOptions.abort
         },
         fetchProxies
@@ -204,6 +207,7 @@ describe('Proxy Balancer', () => {
         await balancer.request('http://127.0.0.1:8080')
       } catch {
         expect(balancer.request.calledOnce).to.be.true
+        expect(err.body).to.equal('fail')
       }
     });
 
