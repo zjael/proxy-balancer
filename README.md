@@ -27,6 +27,24 @@ const Balancer = require('proxy-balancer');
 const fetch = require('node-fetch');
 
 const balancer = new Balancer({
+  // Required function to populate proxy list, in this case we use a simple web request using node-fetch.
+  // Proxies should be in this format:
+  // [ http://0.0.0.0:8080, https://0.0.0.0:8081, socks4://0.0.0.0:8000 ]
+  fetchProxies: () => {
+    return fetch('https://www.cool-proxy.net/proxies.json')
+      .then(res => res.json())
+      .then(proxies => {
+        return proxies
+          .filter(proxy => proxy.working_average > 70)
+          .map(proxy => `http://${proxy.ip}:${proxy.port}`)
+      })
+  },
+
+  /* 
+   * * * Optional Configs * * * 
+   * all times in milli-seconds
+   */
+
   // Time in milli-seconds, until the proxy list will be updated.
   poolExpired: 1 * 60 * 1000,
 
@@ -42,20 +60,7 @@ const balancer = new Balancer({
   // Time in milli-seconds, to wait for proxy connection to establish.
   proxyTimeout: 2 * 1000,
 
-  // Function to populate proxy list, in this case we use a simple web request using node-fetch.
-  // Proxies should be in this format:
-  // [ http://0.0.0.0:8080, https://0.0.0.0:8081, socks4://0.0.0.0:8000 ]
-  fetchProxies: () => {
-    return fetch('https://www.cool-proxy.net/proxies.json')
-      .then(res => res.json())
-      .then(proxies => {
-        return proxies
-          .filter(proxy => proxy.working_average > 70)
-          .map(proxy => `http://${proxy.ip}:${proxy.port}`)
-      })
-  },
-
-  // specify a request adgent of your choosing, default is node-fetch
+  // optionally specify a request adgent of your choosing, default is node-fetch
   requestor: axios,
 
   // optional agent function to use other proxy agents (i.e. tunnel) 
@@ -68,7 +73,7 @@ const balancer = new Balancer({
   // optional configs for bottleneck package
   bottleneckOptions: {},
 
-  // Optional retry function logic (supports async/await)
+  // optional retry function logic (supports async/await)
   // es6: import Balancer, { retryOptions } from 'proxy-balancer'
   // es5: const retryOptions = Balancer.retryOptions
   retryFn: ({ error, retryCount, timesThisIpRetried, ipsTried }) => {
@@ -79,6 +84,26 @@ const balancer = new Balancer({
       return retryOptions.retryNextIp
     }
     return retryOptions.abort
+  },
+
+  // optional limiter to fine tune timeouts
+  callsPerDuration: 5, // required
+  duration: 60 * 1000, // required
+  postDurationWait: 5 * 60 * 1000, // required
+  handleNoAvailableProxies: () => { // optional
+    // optionally handle no available proxies, i.e. request more proxies
+  }
+
+  // optional proxy formatting function if you're using unique proxy objects
+  formatProxy: (proxy) => {
+    if (proxy.url) {
+      // default will return proxy.url
+      return proxy.url
+    } else {
+      // if you use unique objects, it expects it to resemble a URL object
+      // Url is the node-url package https://www.npmjs.com/package/url
+      return Url.format(proxy)
+    }
   }
 });
 

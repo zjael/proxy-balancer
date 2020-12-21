@@ -3,7 +3,7 @@ const chai = require('chai');
 const ProxyAgent = require('simple-proxy-agent');
 const chaiAsPromised = require('chai-as-promised');
 const http = require('http');
-const utils = require('./test-utils');
+const { createProxyServer, delay } = require('./test-utils');
 const axios = require('axios')
 const got = require('got')
 const tunnel = require('tunnel')
@@ -19,7 +19,7 @@ const ports = [
   4003,
   4004
 ]
-const fetchProxies = () => ports.map(port => 'http://127.0.0.1:' + port)
+const fetchProxies = (i) => (i ? ['http://127.0.0.1:' + ports[i]] : ports.map(port => 'http://127.0.0.1:' + port))
 const createTestServer = () => http.createServer((req, res) => {
   res.writeHead(200, { 'Content-type': 'text/plan' });
   res.write('test');
@@ -36,7 +36,7 @@ describe('Proxy Balancer', () => {
   let singleServer;
 
   before(done => {
-    servers = ports.map(port => utils.createProxyServer().listen(port));
+    servers = ports.map(port => createProxyServer().listen(port));
     done();
   });
 
@@ -89,17 +89,150 @@ describe('Proxy Balancer', () => {
     });
   })
 
+  context('ip limiter', () => {
+    it('should limit requests based on callsPerDuration', async () => {
+      let next, proxies
+      const duration = 100
+      const postDurationWait = 200
+      const balancer = new Balancer({
+        callsPerDuration: 2,
+        duration,
+        timeout: 0,
+        postDurationWait,
+        fetchProxies: () => fetchProxies(1)
+      });
+
+      singleServer = createTestServer()
+
+      const call = () => balancer.request('http://127.0.0.1:8080')
+
+      await call()
+
+      proxies = await balancer.getProxies()
+      next = await balancer.nextProxyIndex(proxies)
+      expect(next).to.equal(0)
+
+      await call()
+
+      proxies = await balancer.getProxies()
+      next = await balancer.nextProxyIndex(proxies)
+      expect(next).to.equal(null)
+
+      const success = true
+      expect(success).to.be.true
+
+      failure = false
+      try {
+        await call()
+      } catch (err) {
+        failure = true
+      }
+      expect(failure).to.be.true
+
+      // wait partial duration and expect failure
+      await delay(postDurationWait / 2)
+
+      failure = false
+      try {
+        await call()
+      } catch {
+        failure = true
+      }
+      expect(failure).to.be.true
+
+      // wait full duration and expect success
+      await delay(postDurationWait / 2)
+
+      await call()
+      expect(success).to.be.true
+    })
+
+    it('goes to next proxy after limit reached', async () => {
+      let next, proxies
+      const duration = 100
+      const balancer = new Balancer({
+        callsPerDuration: 2,
+        duration,
+        timeout: 0,
+        postDurationWait: 1000,
+        fetchProxies: () => fetchProxies()
+      });
+
+      singleServer = createTestServer()
+
+      const call = () => balancer.request('http://127.0.0.1:8080')
+
+      proxies = await balancer.getProxies()
+      next = await balancer.nextProxyIndex(proxies)
+      expect(next).to.equal(1)
+
+      await call()
+
+      proxies = await balancer.getProxies()
+      next = await balancer.nextProxyIndex(proxies)
+      expect(next).to.equal(2)
+
+
+      await call()
+
+      proxies = await balancer.getProxies()
+      next = await balancer.nextProxyIndex(proxies)
+      expect(next).to.equal(3)
+
+      await call()
+
+      proxies = await balancer.getProxies()
+      next = await balancer.nextProxyIndex(proxies)
+      // expect to reset to 0
+      expect(next).to.equal(0)
+    })
+
+    it('calls handleNoAvailableProxies when no available proxies', async () => {
+      let noProxies
+      const duration = 100
+      const balancer = new Balancer({
+        callsPerDuration: 1,
+        duration,
+        timeout: 0,
+        postDurationWait: 1000,
+        fetchProxies: () => fetchProxies(1),
+        handleNoAvailableProxies: () => {
+          noProxies = true
+        }
+      });
+
+      singleServer = createTestServer()
+
+      const call = () => balancer.request('http://127.0.0.1:8080')
+
+      await call()
+
+      expect(!noProxies).to.be.true
+
+      let fail = false
+      try {
+        await call()
+      } catch {
+        fail = true
+      }
+      expect(fail).to.be.true
+
+      expect(noProxies).to.be.true
+    })
+  })
+
   context('base functionalities', () => {
     it('should use new proxy on each request - round robin', async () => {
       const balancer = new Balancer({
         fetchProxies
       });
 
-      const first = await balancer.getNext();
+      // first starts at index 0, getNext will increment
       const second = await balancer.getNext();
+      const third = await balancer.getNext();
 
-      expect(first).to.deep.equal({ url: 'http://127.0.0.1:' + ports[0] });
       expect(second).to.deep.equal({ url: 'http://127.0.0.1:' + ports[1] });
+      expect(third).to.deep.equal({ url: 'http://127.0.0.1:' + ports[2] });
     });
 
     it('should send request using proxy', (done) => {
