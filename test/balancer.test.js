@@ -128,11 +128,11 @@ describe('Proxy Balancer', () => {
         failure = true
       }
       expect(failure).to.be.true
-      failure = false
 
       // wait partial duration and expect failure
       await delay(postDurationWait / 2)
 
+      failure = false
       try {
         await call()
       } catch {
@@ -209,12 +209,13 @@ describe('Proxy Balancer', () => {
 
       expect(!noProxies).to.be.true
 
+      let fail = false
       try {
         await call()
       } catch {
-        const fail = true
-        expect(fail).to.be.true
+        fail = true
       }
+      expect(fail).to.be.true
 
       expect(noProxies).to.be.true
     })
