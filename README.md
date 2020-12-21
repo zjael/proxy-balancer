@@ -42,6 +42,7 @@ const balancer = new Balancer({
 
   /* 
    * * * Optional Configs * * * 
+   * all times in milli-seconds
    */
 
   // Time in milli-seconds, until the proxy list will be updated.

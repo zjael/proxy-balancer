@@ -92,7 +92,7 @@ describe('Proxy Balancer', () => {
   context('ip limiter', () => {
     it('should limit requests based on callsPerDuration', async () => {
       let next, proxies
-      const duration = 100 / 1000
+      const duration = 100
       const postDurationWait = 200
       const balancer = new Balancer({
         callsPerDuration: 2,
