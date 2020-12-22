@@ -7,7 +7,7 @@ const balancer = new Balancer({
   minTime: 100,
   timeout: 3 * 1000,
   proxyTimeout: 2 * 1000,
-  proxyFn() {
+  fetchProxies() {
     return fetch('https://www.cool-proxy.net/proxies.json')
       .then(res => res.json())
       .then(proxies => {
@@ -20,7 +20,7 @@ const balancer = new Balancer({
 
 let promises = [];
 for (let i = 0; i < 100; i++) {
-  promises.push(balancer.handleRequest('https://ipv4.icanhazip.com')
+  promises.push(balancer.request('https://ipv4.icanhazip.com')
     .then(res => res.text())
     .then(body => {
       body = body.trim();
