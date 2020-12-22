@@ -87,6 +87,33 @@ describe('Proxy Balancer', () => {
 
       await expect(balancer.request()).to.be.rejectedWith("Empty proxy list");
     });
+
+    it('it should force refresh when passed true', async () => {
+      let fProxies = fetchProxies()
+      const balancer = new Balancer({
+        fetchProxies: () => fProxies
+      });
+
+      let proxies = await balancer.getProxies()
+      for (const port of ports) {
+        expect(proxies).to.deep.include({ url: 'http://127.0.0.1:' + port });
+      }
+
+      // set proxies to just 1
+      fProxies = fetchProxies().slice(0, 1)
+
+      // should return same proxies
+      proxies = await balancer.getProxies()
+      for (const port of ports) {
+        expect(proxies).to.deep.include({ url: 'http://127.0.0.1:' + port });
+      }
+      expect(proxies.length).to.equal(4)
+
+      proxies = await balancer.getProxies(true)
+      expect(proxies.length).to.equal(1)
+      expect(proxies).to.deep.include({ url: 'http://127.0.0.1:' + ports[0] });
+      expect(proxies).to.not.deep.include({ url: 'http://127.0.0.1:' + ports[4] });
+    });
   })
 
   context('ip limiter', () => {
@@ -227,9 +254,9 @@ describe('Proxy Balancer', () => {
         fetchProxies
       });
 
-      // first starts at index 0, getNext will increment
-      const second = await balancer.getNext();
-      const third = await balancer.getNext();
+      // first starts at index 0, getAndSetNext will increment
+      const second = await balancer.getAndSetNext();
+      const third = await balancer.getAndSetNext();
 
       expect(second).to.deep.equal({ url: 'http://127.0.0.1:' + ports[1] });
       expect(third).to.deep.equal({ url: 'http://127.0.0.1:' + ports[2] });

@@ -60,7 +60,7 @@ const balancer = new Balancer({
   // Time in milli-seconds, to wait for proxy connection to establish.
   proxyTimeout: 2 * 1000,
 
-  // optionally specify a request adgent of your choosing, default is node-fetch
+  // optionally specify a request agent of your choosing, default is node-fetch
   requestor: axios,
 
   // optional agent function to use other proxy agents (i.e. tunnel) 
