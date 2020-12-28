@@ -76,14 +76,16 @@ const balancer = new Balancer({
   // optional retry function logic (supports async/await)
   // es6: import Balancer, { retryOptions } from 'proxy-balancer'
   // es5: const retryOptions = Balancer.retryOptions
-  retryFn: ({ error, retryCount, timesThisIpRetried, ipsTried }) => {
+  retryFn: ({ error, retryCount, timesThisIpRetried, ipsTried }, { retrySameIp, retryNextIp, abort }) => {
     if (retryCount >= 3) {
-      return retryOptions.abort
+      return abort();
     }
+
     if (error.name && (error.name === "FetchError" || error.name === "AbortError")) {
-      return retryOptions.retryNextIp
+      return retryNextIp();
     }
-    return retryOptions.abort
+
+    return abort();
   },
 
   // optional limiter to fine tune timeouts
