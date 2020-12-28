@@ -40,8 +40,8 @@ const balancer = new Balancer({
       })
   },
 
-  /* 
-   * * * Optional Configs * * * 
+  /*
+   * * * Optional Configs * * *
    * all times in milli-seconds
    */
 
@@ -63,15 +63,15 @@ const balancer = new Balancer({
   // optionally specify a request agent of your choosing, default is node-fetch
   requestor: axios,
 
-  // optional agent function to use other proxy agents (i.e. tunnel) 
-  // or you can add proxy agent auth settings or 
+  // optional agent function to use other proxy agents (i.e. tunnel)
+  // or you can add proxy agent auth settings or
   // return a unique agent object (supports async/await)
   agentFn: ({ url, timeout }) => new ProxyAgent(url, {
     timeout
   }),
 
   // optional configs for bottleneck package
-  bottleneckOptions: {},
+  bottleneck: {},
 
   // optional retry function logic (supports async/await)
   // es6: import Balancer, { retryOptions } from 'proxy-balancer'
@@ -87,12 +87,15 @@ const balancer = new Balancer({
   },
 
   // optional limiter to fine tune timeouts
-  callsPerDuration: 5, // required
-  duration: 60 * 1000, // required
-  postDurationWait: 5 * 60 * 1000, // required
-  handleNoAvailableProxies: () => { // optional
-    // optionally handle no available proxies, i.e. request more proxies
-  }
+  limiter: {
+    callsPerDuration: 5, // required
+    duration: 60 * 1000, // required
+    postDurationWait: 5 * 60 * 1000, // required
+  },
+
+  // optionally handle no available proxies, i.e. request more proxies
+  handleNoAvailableProxies: () => {
+  },
 
   // optional proxy formatting function if you're using unique proxy objects
   formatProxy: (proxy) => {

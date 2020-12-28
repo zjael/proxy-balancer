@@ -9,7 +9,6 @@ const got = require('got')
 const tunnel = require('tunnel')
 const sinon = require('sinon')
 
-const retryOptions = Balancer.retryOptions
 const expect = chai.expect;
 chai.use(chaiAsPromised);
 
@@ -122,10 +121,12 @@ describe('Proxy Balancer', () => {
       const duration = 100
       const postDurationWait = 200
       const balancer = new Balancer({
-        callsPerDuration: 2,
-        duration,
+        limiter: {
+          callsPerDuration: 2,
+          duration,
+          postDurationWait
+        },
         timeout: 0,
-        postDurationWait,
         fetchProxies: () => fetchProxies(1)
       });
 
@@ -218,10 +219,12 @@ describe('Proxy Balancer', () => {
       let noProxies
       const duration = 100
       const balancer = new Balancer({
-        callsPerDuration: 1,
-        duration,
+        limiter: {
+          callsPerDuration: 1,
+          duration,
+          postDurationWait: 1000,
+        },
         timeout: 0,
-        postDurationWait: 1000,
         fetchProxies: () => fetchProxies(1),
         handleNoAvailableProxies: () => {
           noProxies = true
@@ -347,13 +350,90 @@ describe('Proxy Balancer', () => {
     });
   })
 
+  context('validateFn(..)', () => {
+    it('should pass if true', (done) => {
+      const balancer = new Balancer({
+        validateFn: (res) => {
+          return true;
+        },
+        retryFn: ({}, {abort}) => {
+          return abort();
+        },
+        fetchProxies
+      });
+
+      singleServer = createTestServer()
+
+      balancer.request('http://127.0.0.1:8080')
+        .then(res => res.data)
+        .then(body => {
+          expect(body).to.equal('test')
+          done();
+        })
+    });
+
+    it('should fail if false', async () => {
+      let err
+      const balancer = new Balancer({
+        validateFn: (res) => {
+          return false;
+        },
+        retryFn: ({error}, {abort}) => {
+          err = error;
+          return abort();
+        },
+        fetchProxies
+      });
+
+      singleServer = createTestServer()
+
+      // creates function wrapper
+      sinon.spy(balancer, 'request')
+
+      try {
+        await balancer.request('http://127.0.0.1:8080')
+      } catch {
+        expect(balancer.request.calledOnce).to.be.true
+        expect(err.message).to.equal('Response was not valid')
+      }
+    })
+
+    it('should fail on error', async () => {
+      let err
+
+      const message = "test";
+      const balancer = new Balancer({
+        validateFn: (res) => {
+          throw new Error(message);
+        },
+        retryFn: ({error}, {abort}) => {
+          err = error;
+          return abort();
+        },
+        fetchProxies
+      });
+
+      singleServer = createTestServer()
+
+      // creates function wrapper
+      sinon.spy(balancer, 'request')
+
+      try {
+        await balancer.request('http://127.0.0.1:8080')
+      } catch {
+        expect(balancer.request.calledOnce).to.be.true
+        expect(err.message).to.equal(message)
+      }
+    })
+  })
+
   context('retryFn(..)', () => {
     it('aborts and returns error', async () => {
       let err
       const balancer = new Balancer({
-        retryFn: async ({ error, retryCount, timesThisIpRetried, ipsTried }) => {
+        retryFn: async ({ error, retryCount, timesThisIpRetried, ipsTried }, { abort }) => {
           err = error
-          return retryOptions.abort
+          return abort();
         },
         fetchProxies
       });
@@ -367,7 +447,7 @@ describe('Proxy Balancer', () => {
         await balancer.request('http://127.0.0.1:8080')
       } catch {
         expect(balancer.request.calledOnce).to.be.true
-        expect(err.body).to.equal('fail')
+        expect(err.response.data).to.equal('fail')
       }
     });
 
@@ -376,11 +456,11 @@ describe('Proxy Balancer', () => {
       let retryCountVal
       let timesThisIpRetriedVal
       const balancer = new Balancer({
-        retryFn: ({ error, retryCount, timesThisIpRetried, ipsTried }) => {
+        retryFn: ({ error, retryCount, timesThisIpRetried, ipsTried }, { retryNextIp, abort }) => {
           retryCountVal = retryCount
           ipsTriedVal = ipsTried
           timesThisIpRetriedVal = timesThisIpRetried
-          return retryCount >= 2 ? retryOptions.abort : retryOptions.retryNextIp
+          return retryCount >= 2 ? abort() : retryNextIp()
         },
         fetchProxies
       });
@@ -405,11 +485,11 @@ describe('Proxy Balancer', () => {
       let retryCountVal
       let timesThisIpRetriedVal
       const balancer = new Balancer({
-        retryFn: ({ error, retryCount, timesThisIpRetried, ipsTried }) => {
+        retryFn: ({ error, retryCount, timesThisIpRetried, ipsTried }, { retrySameIp, abort }) => {
           retryCountVal = retryCount
           ipsTriedVal = ipsTried
           timesThisIpRetriedVal = timesThisIpRetried
-          return retryCount >= 2 ? retryOptions.abort : retryOptions.retrySameIp
+          return retryCount >= 2 ? abort() : retrySameIp()
         },
         fetchProxies
       });
