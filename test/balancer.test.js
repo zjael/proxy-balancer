@@ -49,6 +49,7 @@ describe('Proxy Balancer', () => {
 
   afterEach(done => {
     if (singleServer) singleServer.close()
+    // TODO: add a balalncer reset here, it doesn't reset to default as it should
     done();
   })
 
@@ -301,6 +302,8 @@ describe('Proxy Balancer', () => {
     it('should make requests successfully with got', (done) => {
       const balancer = new Balancer({
         requestor: got,
+        // specifying timeout because balalancer doesn't reset properly
+        timeout: 3000,
         agentFn: ({ proxy, timeout }) => ({
           https: new ProxyAgent(proxy.url, {
             timeout
@@ -356,7 +359,7 @@ describe('Proxy Balancer', () => {
         validateFn: (res) => {
           return true;
         },
-        retryFn: ({}, {abort}) => {
+        retryFn: ({ }, { abort }) => {
           return abort();
         },
         fetchProxies
@@ -378,7 +381,7 @@ describe('Proxy Balancer', () => {
         validateFn: (res) => {
           return false;
         },
-        retryFn: ({error}, {abort}) => {
+        retryFn: ({ error }, { abort }) => {
           err = error;
           return abort();
         },
@@ -406,7 +409,7 @@ describe('Proxy Balancer', () => {
         validateFn: (res) => {
           throw new Error(message);
         },
-        retryFn: ({error}, {abort}) => {
+        retryFn: ({ error }, { abort }) => {
           err = error;
           return abort();
         },
