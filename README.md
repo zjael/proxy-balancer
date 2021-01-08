@@ -63,6 +63,9 @@ const balancer = new Balancer({
   // optionally specify a request agent of your choosing, default is node-fetch
   requestor: axios,
 
+  // Shuffle fetched proxies, based on Fisher-Yates algorithm.
+  shuffle: false,
+
   // optional agent function to use other proxy agents (i.e. tunnel)
   // or you can add proxy agent auth settings or
   // return a unique agent object (supports async/await)

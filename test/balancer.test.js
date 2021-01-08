@@ -114,6 +114,17 @@ describe('Proxy Balancer', () => {
       expect(proxies).to.deep.include({ url: 'http://127.0.0.1:' + ports[0] });
       expect(proxies).to.not.deep.include({ url: 'http://127.0.0.1:' + ports[4] });
     });
+
+    it('should shuffle proxies', async () => {
+      const fProxies = fetchProxies()
+      const balancer = new Balancer({
+        fetchProxies: () => fProxies,
+        shuffle: true
+      });
+
+      const proxies = await balancer.getProxies();
+      expect(proxies.map(proxy => proxy.url)).to.not.have.deep.ordered.members(fetchProxies());
+    });
   })
 
   context('ip limiter', () => {
