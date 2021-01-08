@@ -7,7 +7,8 @@
     "node": ">=10.0"
   },
   "scripts": {
-    "test": "mocha --timeout 10000 --exit"
+    "test": "mocha --timeout 10000 --exit",
+    "stress": "node stress_test.js"
   },
   "keywords": [
     "proxy",
@@ -29,11 +30,18 @@
   "dependencies": {
     "bottleneck": "^2.19.5",
     "node-fetch": "^2.6.0",
-    "simple-proxy-agent": "^1.1.0"
+    "rate-limiter-flexible": "^2.1.15",
+    "shuffle-array": "^1.0.1",
+    "simple-proxy-agent": "^1.1.0",
+    "url": "^0.11.0"
   },
   "devDependencies": {
+    "axios": "^0.21.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
-    "mocha": "^8.0.1"
+    "got": "^11.8.1",
+    "mocha": "^8.0.1",
+    "sinon": "^9.2.2",
+    "tunnel": "0.0.6"
   }
 }

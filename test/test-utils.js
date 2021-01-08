@@ -39,6 +39,11 @@ function createProxyServer() {
   return http.createServer(onRequest);
 }
 
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 module.exports = {
-  createProxyServer
+  createProxyServer,
+  delay
 }

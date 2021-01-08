@@ -1,5 +1,5 @@
 const fetch = require('node-fetch');
-const Balancer = require('./lib/balancer.js');
+const Balancer = require('./lib/balancer');
 
 const balancer = new Balancer({
   poolExpired: 1 * 60 * 1000,
@@ -7,7 +7,7 @@ const balancer = new Balancer({
   minTime: 100,
   timeout: 3 * 1000,
   proxyTimeout: 2 * 1000,
-  proxyFn() {
+  fetchProxies() {
     return fetch('https://www.cool-proxy.net/proxies.json')
       .then(res => res.json())
       .then(proxies => {
