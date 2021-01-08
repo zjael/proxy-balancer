@@ -49,7 +49,6 @@ describe('Proxy Balancer', () => {
 
   afterEach(done => {
     if (singleServer) singleServer.close()
-    // TODO: add a balalncer reset here, it doesn't reset to default as it should
     done();
   })
 
@@ -313,8 +312,6 @@ describe('Proxy Balancer', () => {
     it('should make requests successfully with got', (done) => {
       const balancer = new Balancer({
         requestor: got,
-        // specifying timeout because balalancer doesn't reset properly
-        timeout: 3000,
         agentFn: ({ proxy, timeout }) => ({
           https: new ProxyAgent(proxy.url, {
             timeout
@@ -379,7 +376,7 @@ describe('Proxy Balancer', () => {
       singleServer = createTestServer()
 
       balancer.request('http://127.0.0.1:8080')
-        .then(res => res.data)
+        .then(res => res.text())
         .then(body => {
           expect(body).to.equal('test')
           done();
@@ -460,8 +457,9 @@ describe('Proxy Balancer', () => {
       try {
         await balancer.request('http://127.0.0.1:8080')
       } catch {
+        const message = await err.response.text();
         expect(balancer.request.calledOnce).to.be.true
-        expect(err.response.data).to.equal('fail')
+        expect(message).to.equal('fail')
       }
     });
 
