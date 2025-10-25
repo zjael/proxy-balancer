@@ -484,7 +484,7 @@ describe('Proxy Balancer', () => {
           retryCountVal = retryCount;
           ipsTriedVal = ipsTried;
           timesThisIpRetriedVal = timesThisIpRetried;
-          return retryCount >= 2 ? retrySameIp() : retrySameIp();
+          return retryCount >= 2 ? abort() : retrySameIp();
         },
         fetchProxies,
       });
