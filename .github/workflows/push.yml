@@ -23,7 +23,14 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
+      - name: Clean install (macOS workaround)
+        if: runner.os == 'macOS'
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install
+
       - name: Install dependencies
+        if: runner.os != 'macOS'
         run: npm ci
 
       - name: Lint
