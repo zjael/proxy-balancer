@@ -15,8 +15,11 @@
   },
   "files": [
     "dist",
+    "examples",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md",
+    "MIGRATION.md"
   ],
   "engines": {
     "node": ">=18.0.0"

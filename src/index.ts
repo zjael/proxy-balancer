@@ -25,6 +25,3 @@ export type {
   RequestOptions,
   Response,
 } from './types/index.js';
-
-// Default export
-export { Balancer as default } from './core/Balancer.js';

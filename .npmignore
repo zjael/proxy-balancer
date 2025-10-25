@@ -1,0 +1,49 @@
+# Source files
+src/
+test/
+*.test.ts
+*.spec.ts
+
+# Config files
+tsconfig.json
+tsup.config.ts
+vitest.config.ts
+.eslintrc.json
+.prettierrc.json
+.prettierignore
+
+# Git
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# CI/CD
+.github/
+*.yml
+*.yaml
+
+# Development
+node_modules/
+*.log
+npm-debug.log*
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Build artifacts
+*.tsbuildinfo
+.eslintcache
+
+# Examples and docs (keep for npm)
+# examples/
+# MIGRATION.md
+# CHANGELOG.md
+
+# Test utilities
+stress_test.js
+
+# OS
+.DS_Store
+Thumbs.db
