@@ -23,8 +23,15 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
 
-      - name: Clean install (workaround for npm optional dependencies bug)
-        if: runner.os == 'macOS' || runner.os == 'Windows'
+      - name: Clean install - macOS (workaround for npm optional dependencies bug)
+        if: runner.os == 'macOS'
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install
+
+      - name: Clean install - Windows (workaround for npm optional dependencies bug)
+        if: runner.os == 'Windows'
+        shell: bash
         run: |
           rm -rf node_modules package-lock.json
           npm install
