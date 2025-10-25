@@ -148,12 +148,16 @@ describe('Proxy Balancer', () => {
       const call = () => balancer.request('http://127.0.0.1:8080');
 
       await call();
+      // Wait for rate limiter to update (next event loop tick)
+      await new Promise(resolve => setImmediate(resolve));
 
       let proxies = await balancer.getProxies();
       let next = await balancer.nextProxyIndex(proxies);
       expect(next).toBe(0);
 
       await call();
+      // Wait for rate limiter to update (next event loop tick)
+      await new Promise(resolve => setImmediate(resolve));
 
       proxies = await balancer.getProxies();
       next = await balancer.nextProxyIndex(proxies);
