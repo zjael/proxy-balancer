@@ -1,13 +1,38 @@
 {
   "name": "proxy-balancer",
-  "version": "2.0.1",
-  "description": "Proxy load balancer",
-  "main": "./lib/balancer.js",
+  "version": "3.0.0",
+  "description": "Modern TypeScript proxy load balancer with automatic failover and rate limiting",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "engines": {
-    "node": ">=10.0"
+    "node": ">=18.0.0"
   },
   "scripts": {
-    "test": "mocha --timeout 10000 --exit",
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src --ext .ts",
+    "lint:fix": "eslint src --ext .ts --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\"",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build",
     "stress": "node stress_test.js"
   },
   "keywords": [
@@ -15,7 +40,12 @@
     "proxies",
     "balancer",
     "rotater",
-    "rotating"
+    "rotating",
+    "load-balancer",
+    "proxy-pool",
+    "rate-limiting",
+    "typescript",
+    "failover"
   ],
   "repository": {
     "type": "git",
@@ -30,18 +60,23 @@
   "dependencies": {
     "bottleneck": "^2.19.5",
     "node-fetch": "^2.6.7",
-    "rate-limiter-flexible": "^2.1.15",
-    "shuffle-array": "^1.0.1",
-    "simple-proxy-agent": "^1.1.0",
-    "url": "^0.11.0"
+    "rate-limiter-flexible": "^2.3.12",
+    "simple-proxy-agent": "^1.1.0"
   },
   "devDependencies": {
-    "axios": "^1.1.3",
-    "chai": "^4.2.0",
-    "chai-as-promised": "^7.1.1",
-    "got": "^11.8.5",
-    "mocha": "^10.1.0",
-    "sinon": "^14.0.1",
-    "tunnel": "0.0.6"
+    "@types/node": "^20.10.0",
+    "@types/node-fetch": "^2.6.13",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "@vitest/coverage-v8": "^1.0.4",
+    "axios": "^1.6.2",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "got": "^14.0.0",
+    "prettier": "^3.1.1",
+    "tsup": "^8.0.1",
+    "tunnel": "^0.0.6",
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.4"
   }
 }

@@ -1,0 +1,7 @@
+dist
+node_modules
+lib
+coverage
+*.md
+package-lock.json
+pnpm-lock.yaml
